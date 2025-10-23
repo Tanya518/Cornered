@@ -4,7 +4,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
 develop-eggs/
 dist/
 downloads/
@@ -33,6 +32,3 @@ wheels/
 # OS
 .DS_Store
 Thumbs.db
-
-# Pygbag build
-build/
