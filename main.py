@@ -13,9 +13,9 @@ if platform.system() == "Emscripten" or sys.platform == "emscripten":
 
 pygame.init()
 
-# Adaptive screen size for browser
-WIDTH = 1200
-HEIGHT = 800
+# Smaller size for better browser performance
+WIDTH = 1000
+HEIGHT = 700
 
 FONT = pygame.font.SysFont('Verdana', 30)
 
@@ -206,7 +206,7 @@ async def main():
     phrase_timer = 0
 
     while playing:
-        FPS.tick(120)
+        FPS.tick(60)  # 60 FPS for better browser performance
 
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -241,7 +241,7 @@ async def main():
                 snowflake_y = 0
                 snowflake_size = random.randint(3, 6)
                 snowflake_rotation = random.uniform(0, 6.28)  # Initial rotation
-                snowflake_rotation_speed = random.uniform(-0.02, 0.02)  # Slow rotation
+                snowflake_rotation_speed = random.uniform(-0.1, 0.1)  # Random rotation speed
                 snowflakes.append([snowflake_x, snowflake_y, snowflake_size, snowflake_rotation, snowflake_rotation_speed])
 
             for snowflake in snowflakes:
