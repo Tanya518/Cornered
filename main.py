@@ -4,9 +4,16 @@ import asyncio
 import pygame
 from pygame.constants import QUIT, K_DOWN, K_UP, K_LEFT, K_RIGHT
 import random
+import sys
+import platform
+
+# Check if running in browser
+if platform.system() == "Emscripten" or sys.platform == "emscripten":
+    platform.window.canvas.style.imageRendering = "pixelated"
 
 pygame.init()
 
+# Adaptive screen size for browser
 WIDTH = 1200
 HEIGHT = 800
 
@@ -60,8 +67,8 @@ COLOR_WHITE = (255, 255, 255)
 COLOR_SNOWFLAKE = (0xF4, 0xEF, 0xE5)
 COLOR_LIGHT_GREEN = (0x9A, 0xD3, 0x70)
 
-main_display = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Моя Перша Гра")
+main_display = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
+pygame.display.set_caption("Cornered - Моя Перша Гра")
 
 def create_enemy():
     enemy_size = (30, 30)
@@ -105,8 +112,9 @@ def create_snow_hexagon(bonuses):
     hex_surf = pygame.transform.rotate(hex_surf, rotation_angle)
 
     spawn_x = random.randint(50, WIDTH - 50)
-    while any(abs(spawn_x - bonus[1].centerx) < 50 and abs(0 - bonus[1].centery) < 50 for bonus in bonuses):
-        spawn_x = random.randint(50, WIDTH - 50)
+    if bonuses:
+        while any(abs(spawn_x - bonus[1].centerx) < 50 and abs(0 - bonus[1].centery) < 50 for bonus in bonuses):
+            spawn_x = random.randint(50, WIDTH - 50)
 
     hex_rect = pygame.Rect(spawn_x, 0, *hex_size)
     hex_move = [0, 3]
@@ -131,8 +139,9 @@ def create_green_hexagon(bonuses):
     hex_surf = pygame.transform.rotate(hex_surf, rotation_angle)
 
     spawn_x = random.randint(50, WIDTH - 50)
-    while any(abs(spawn_x - bonus[1].centerx) < 50 and abs(0 - bonus[1].centery) < 50 for bonus in bonuses):
-        spawn_x = random.randint(50, WIDTH - 50)
+    if bonuses:
+        while any(abs(spawn_x - bonus[1].centerx) < 50 and abs(0 - bonus[1].centery) < 50 for bonus in bonuses):
+            spawn_x = random.randint(50, WIDTH - 50)
 
     hex_rect = pygame.Rect(spawn_x, 0, *hex_size)
     hex_move = [0, 3]
@@ -225,26 +234,33 @@ async def main():
 
         main_display.fill(COLOR_BLACK)
 
+        # Simple snowflakes - just circles, no rotation
         if is_snowing:
             if random.random() < 0.1 and len(snowflakes) < 50:
                 snowflake_x = random.randint(0, WIDTH)
                 snowflake_y = 0
-                snowflake_size = random.randint(4, 8)
-                snowflakes.append([snowflake_x, snowflake_y, snowflake_size])
+                snowflake_size = random.randint(3, 6)
+                snowflake_rotation = random.uniform(0, 6.28)  # Initial rotation
+                snowflake_rotation_speed = random.uniform(-0.02, 0.02)  # Slow rotation
+                snowflakes.append([snowflake_x, snowflake_y, snowflake_size, snowflake_rotation, snowflake_rotation_speed])
 
             for snowflake in snowflakes:
                 snowflake[0] += wind_force.x
                 snowflake[1] += 2
+                snowflake[3] += snowflake[4]  # Update rotation slowly
+
                 if snowflake[1] < HEIGHT and 0 < snowflake[0] < WIDTH:
-                    points = []
-                    for i in range(random.randint(4, 7)):
-                        angle = random.uniform(0, 6.28)
-                        radius = snowflake[2]
-                        px = snowflake[0] + radius * random.uniform(0.5, 1) * pygame.math.Vector2(1, 0).rotate_rad(angle).x
-                        py = snowflake[1] + radius * random.uniform(0.5, 1) * pygame.math.Vector2(1, 0).rotate_rad(angle).y
-                        points.append((int(px), int(py)))
-                    if len(points) >= 3:
-                        pygame.draw.polygon(main_display, COLOR_SNOWFLAKE, points)
+                    # Draw simple rotating snowflake (4-pointed star)
+                    size = snowflake[2]
+                    angle = snowflake[3]
+                    center_x, center_y = int(snowflake[0]), int(snowflake[1])
+
+                    # Draw 4 points of star
+                    for i in range(4):
+                        point_angle = angle + i * 1.57  # 90 degrees in radians
+                        end_x = center_x + size * pygame.math.Vector2(1, 0).rotate_rad(point_angle).x
+                        end_y = center_y + size * pygame.math.Vector2(1, 0).rotate_rad(point_angle).y
+                        pygame.draw.line(main_display, COLOR_SNOWFLAKE, (center_x, center_y), (int(end_x), int(end_y)), 2)
 
             snowflakes = [s for s in snowflakes if s[1] < HEIGHT and 0 < s[0] < WIDTH]
 
