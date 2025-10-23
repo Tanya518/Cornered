@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Моя Перша Гра - Pygame</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Verdana', sans-serif;
+            color: #A6F060;
+        }
+
+        h1 {
+            margin: 20px 0;
+            text-align: center;
+            font-size: 2em;
+        }
+
+        .game-container {
+            border: 3px solid #A6F060;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(166, 240, 96, 0.5);
+        }
+
+        .instructions {
+            max-width: 800px;
+            margin: 20px;
+            padding: 20px;
+            background: #111;
+            border: 2px solid #A6F060;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .instructions h2 {
+            margin-top: 0;
+            color: #E86421;
+        }
+
+        .instructions p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #output {
+            color: #fff;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 Моя Перша Гра</h1>
+
+    <div class="instructions">
+        <h2>Як грати:</h2>
+        <p>⬆️ ⬇️ ⬅️ ➡️ - Керування стрілками</p>
+        <p>🟩 Зелений квадрат - це ти!</p>
+        <p>🟧 Оранжеві квадрати - вороги (-1 бал)</p>
+        <p>🔺 Різнокольорові трикутники - бонуси (+1 бал)</p>
+        <p>🔶 Червоні ромби - збільшують тебе</p>
+        <p>⬡ Білі шестикутники - запускають сніг</p>
+        <p>⬢ Зелені шестикутники - зупиняють сніг (+3 бали)</p>
+    </div>
+
+    <div class="game-container">
+        <canvas id="canvas" width="1200" height="800"></canvas>
+    </div>
+
+    <div id="output"></div>
+
+    <script src="main.py" type="application/python"></script>
+</body>
+</html>
