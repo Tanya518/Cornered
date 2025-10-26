@@ -144,7 +144,7 @@
         </div>
 
         <div class="info">
-            <strong>Керування:</strong> ⬆️ ⬇️ ⬅️ ➡️ стрілки або WASD
+            <strong>Керування:</strong> ⬆️ ⬇️ ⬅️ ➡️ стрілки, WASD або свайп пальцем 📱
         </div>
 
         <div class="controls">
@@ -259,7 +259,7 @@ class Player:
         ctx.fill()
         ctx.restore()
 
-    def update(self, keys, wind_x_force, wind_y_force):
+    def update(self, keys, wind_x_force, wind_y_force, swipe_dir):
         # Відштовхування
         if abs(self.knockback_vx) > 0.5 or abs(self.knockback_vy) > 0.5:
             new_x = self.x + self.knockback_vx
@@ -290,6 +290,7 @@ class Player:
             move_x = 0
             move_y = 0
 
+            # Клавіатура
             if "ArrowDown" in keys or "s" in keys or "S" in keys:
                 move_y += self.speed
             if "ArrowUp" in keys or "w" in keys or "W" in keys:
@@ -298,6 +299,10 @@ class Player:
                 move_x += self.speed
             if "ArrowLeft" in keys or "a" in keys or "A" in keys:
                 move_x -= self.speed
+
+            # Сенсорне керування (свайп)
+            move_x += swipe_dir["x"] * self.speed
+            move_y += swipe_dir["y"] * self.speed
 
             # Додаємо силу вітру
             move_x += wind_x_force
@@ -461,6 +466,12 @@ enemy_collision_occurred = False
 diamond_collision_occurred = False
 snow_collision_occurred = False
 
+# Сенсорне керування
+touch_start_x = 0
+touch_start_y = 0
+touch_active = False
+swipe_direction = {"x": 0, "y": 0}
+
 enemy_timer_val = 1200
 bonus_timer_val = 1500
 diamond_timer_val = 4500
@@ -528,8 +539,8 @@ def game_loop():
             else:
                 snowflakes.remove(flake)
 
-    # Оновити гравця (передаємо силу вітру)
-    player.update(keys_pressed, wind_x, wind_y)
+    # Оновити гравця (передаємо силу вітру та свайп)
+    player.update(keys_pressed, wind_x, wind_y, swipe_direction)
 
     # Оновити вороги
     for enemy in enemies[:]:
@@ -720,6 +731,37 @@ def on_keyup(event):
         keys_pressed.remove(event.key)
     event.preventDefault()
 
+# Обробка сенсорного керування
+def on_touchstart(event):
+    global touch_start_x, touch_start_y, touch_active
+    event.preventDefault()
+    if len(event.touches) > 0:
+        touch = event.touches[0]
+        touch_start_x = touch.clientX
+        touch_start_y = touch.clientY
+        touch_active = True
+
+def on_touchmove(event):
+    global swipe_direction
+    event.preventDefault()
+    if touch_active and len(event.touches) > 0:
+        touch = event.touches[0]
+        dx = touch.clientX - touch_start_x
+        dy = touch.clientY - touch_start_y
+
+        # Нормалізуємо до -1...1
+        distance = (dx*dx + dy*dy) ** 0.5
+        if distance > 10:  # Мінімальна відстань для свайпу
+            swipe_direction["x"] = dx / max(abs(dx), abs(dy), 1) if distance > 0 else 0
+            swipe_direction["y"] = dy / max(abs(dx), abs(dy), 1) if distance > 0 else 0
+
+def on_touchend(event):
+    global touch_active, swipe_direction
+    event.preventDefault()
+    touch_active = False
+    swipe_direction["x"] = 0
+    swipe_direction["y"] = 0
+
 # Обробник зміни розміру вікна
 def on_resize(event):
     update_canvas_size()
@@ -743,6 +785,15 @@ def start_game():
     keyup_proxy = create_proxy(on_keyup)
     document.addEventListener("keydown", keydown_proxy)
     document.addEventListener("keyup", keyup_proxy)
+
+    # Додати обробники сенсорного керування
+    touchstart_proxy = create_proxy(on_touchstart)
+    touchmove_proxy = create_proxy(on_touchmove)
+    touchend_proxy = create_proxy(on_touchend)
+    canvas.addEventListener("touchstart", touchstart_proxy)
+    canvas.addEventListener("touchmove", touchmove_proxy)
+    canvas.addEventListener("touchend", touchend_proxy)
+    canvas.addEventListener("touchcancel", touchend_proxy)
 
     # Додати обробник resize
     resize_proxy = create_proxy(on_resize)
